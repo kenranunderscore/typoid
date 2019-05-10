@@ -5,9 +5,14 @@
 
 (reacl/defclass foo []
   render
-  (dom/div "hiiiiii"))
+  (dom/div "o21"))
 
-(defn init []
-  (reacl/render-component
-   (.getElementById js/document "react-root")
-   foo))
+(defn init! []
+  (println "Initialization complete"))
+
+(defn reload! []
+  (println "Reloading finished"))
+
+(reacl/render-component
+ (.getElementById js/document "react-root")
+ foo)
