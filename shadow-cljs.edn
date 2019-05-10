@@ -9,4 +9,8 @@
  :dev-http {8080 "public"}
  :builds {:app {:target :browser
                 :modules {:main {:init-fn typoid.core/init!}}
-                :devtools {:after-load typoid.core/reload!}}}}
+                :devtools {:after-load typoid.core/reload!}}
+          :test {:target :browser-test
+                 :test-dir "public/js/test"
+                 :devtools {:http-port 8021
+                            :http-root "public/js/test"}}}}
