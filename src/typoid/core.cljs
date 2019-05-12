@@ -45,6 +45,28 @@
                                       "white")}}
          (:char character-state)))
 
+(defn allowed-key? [code]
+  (let [characters (into #{}
+                         (concat [8   ;; backspace
+                                  13  ;; enter
+                                  16  ;; shift
+                                  17  ;; control
+                                  32  ;; space
+                                  160 ;; ^
+                                  161 ;; !
+                                  163 ;; #
+                                  164 ;; $
+                                  169 ;; ) (AZERTY)
+                                  170 ;; *
+                                  171 ;; ~
+                                  173 ;; - (firefox)
+                                  ]
+                                 (into #{} (range 186 224)) ;; various punctuation characters
+                                 (into #{} (range 48 91))   ;; alphanumerics
+                                 ))]
+    (contains? characters
+               code)))
+
 (defn make-foo-state [text]
   {:pos 0
    :characters (mapv (fn [c]
@@ -61,8 +83,10 @@
                     :font-family "monospace"}
             :tabIndex 0
             :onkeydown (fn [e]
-                         (.preventDefault e)
-                         (reacl/send-message! this (->KeyState (.-keyCode e) (.-key e))))}
+                         (let [code (.-keyCode e)]
+                           (when (allowed-key? code)
+                             (.preventDefault e)
+                             (reacl/send-message! this (->KeyState (.-keyCode e) (.-key e))))))}
            (map character (:characters state)))
 
   handle-message
@@ -74,4 +98,4 @@
 (reacl/render-component
  (.getElementById js/document "react-root")
  foo
- "foo")
+ "Use some Uppercase letterS")
