@@ -22,12 +22,17 @@
   (let [pos (:pos state)]
     (-> state
         (assoc :pos (inc pos))
-        (assoc :characters (assoc (:characters state) pos (->CharacterState :correct " "))))))
+        (assoc-in [:characters pos :state] :correct))))
+
+(defn done? [state]
+  (>= (:pos state)
+      (count (:characters state))))
 
 (defn handle-key-event [key-state state]
   (reacl/return :local-state
-                (if (= (:key key-state)
-                       (active-char state))
+                (if (and (not (done? state))
+                         (= (:key key-state)
+                            (active-char state)))
                   (advance state)
                   state)))
 
@@ -69,4 +74,4 @@
 (reacl/render-component
  (.getElementById js/document "react-root")
  foo
- "these are some random words for testing")
+ "foo")
