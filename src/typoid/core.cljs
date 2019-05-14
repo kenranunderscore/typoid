@@ -10,12 +10,13 @@
   (println "Reloading finished"))
 
 (defrecord KeyState [key-code key])
-
 (defrecord CharacterState [state char])
+(defrecord StartTypingAction [timestamp])
+(defrecord FinishedTypingAction [timestamp])
 
 (defn active-char [state]
   (:char
-   (nth (:characters state)
+   (get (:characters state)
         (:pos state))))
 
 (defn advance [state]
@@ -24,17 +25,40 @@
         (assoc :pos (inc pos))
         (assoc-in [:characters pos :state] :correct))))
 
-(defn done? [state]
-  (>= (:pos state)
-      (count (:characters state))))
+(defn last-letter? [state]
+  (= (:pos state)
+     (dec (count (:characters state)))))
+
+(defn assoc-when [pred? m k v]
+  (if pred?
+    (assoc m k v)
+    m))
 
 (defn handle-key-event [key-state state]
-  (reacl/return :local-state
-                (if (and (not (done? state))
-                         (= (:key key-state)
-                            (active-char state)))
-                  (advance state)
-                  state)))
+  (let [started? (:started? state)
+        correct-key? (= (:key key-state)
+                        (active-char state))
+        game-over? (and (last-letter? state)
+                        correct-key?)]
+    (reacl/merge-returned
+     (reacl/return :local-state
+                   (as-> state $
+                     (if correct-key?
+                       (advance $)
+                       $)
+                     (assoc-when (not started?)
+                                 $
+                                 :started?
+                                 true)))
+     (cond
+       (not started?)
+       (reacl/return :action (->StartTypingAction (js/Date.)))
+
+       game-over?
+       (reacl/return :action (->FinishedTypingAction (js/Date.)))
+
+       :else
+       (reacl/return)))))
 
 (reacl/defclass character this [character-state]
   render
@@ -69,6 +93,7 @@
 
 (defn make-foo-state [text]
   {:pos 0
+   :started? false
    :characters (mapv (fn [c]
                        (->CharacterState :untyped c))
                      text)})
@@ -95,7 +120,16 @@
       (instance? KeyState msg)
       (handle-key-event msg state))))
 
+(defn handle-action [_ action]
+  (cond
+    (instance? StartTypingAction action)
+    (reacl/return)
+
+    (instance? FinishedTypingAction action)
+    (reacl/return)))
+
 (reacl/render-component
  (.getElementById js/document "react-root")
  foo
+ (reacl/opt :reduce-action handle-action)
  "Use some Uppercase letterS")
