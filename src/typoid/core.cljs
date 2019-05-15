@@ -1,8 +1,8 @@
 (ns typoid.core
-  (:require
-   [reacl2.core :as reacl :include-macros true]
-   [reacl2.dom :as dom]
-   [typoid.input :as input]))
+  (:require [reacl2.core :as reacl :include-macros true]
+            [reacl2.dom :as dom]
+            [typoid.input :as input]
+            [typoid.navbar :as navbar]))
 
 (defn init! []
   (println "Initialization complete"))
@@ -18,8 +18,14 @@
     (instance? input/FinishedTypingAction action)
     (reacl/return)))
 
+(reacl/defclass main this []
+  render
+  (dom/div
+   (navbar/navbar)
+   (input/foo (reacl/opt :reduce-action handle-action)
+              "This is an example text")))
+
 (reacl/render-component
  (.getElementById js/document "react-root")
- input/foo
- (reacl/opt :reduce-action handle-action)
- "Use some Uppercase letterS")
+ main
+ nil)

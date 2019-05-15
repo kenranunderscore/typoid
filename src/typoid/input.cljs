@@ -1,7 +1,6 @@
 (ns typoid.input
-  (:require
-   [reacl2.core :as reacl :include-macros true]
-   [reacl2.dom :as dom]))
+  (:require [reacl2.core :as reacl :include-macros true]
+            [reacl2.dom :as dom]))
 
 (defrecord KeyState [key-code key])
 (defrecord CharacterState [state char])
